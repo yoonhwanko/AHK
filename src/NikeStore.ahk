@@ -32,7 +32,7 @@ stop = 0
 	msgbox ShoeName = %ShoeName% ShoeSize = %ShoeSize%
 	DebugMessage("ShoeName = " ShoeName ", ShoeSize = " ShoeSize )
 	
-	URL :=	"http://store.nike.com/us/en_us/pd/air-jordan-xx8-se-basketball-shoe/pid-1465170/pgid-782607"
+	URL :=	"http://store.nike.com/us/en_us/pd/air-zoom-pegasus-31-running-shoe/pid-1066809/pgid-1066805"
 
 	pwb :=	ComObjCreate("InternetExplorer.Application"), pwb.Navigate(URL)
 
@@ -49,26 +49,34 @@ stop = 0
 	
 	;Size
 	label := ""
-	Loop %   (option := pwb.document.all.tags["option"]).length
+	selects := pwb.document.getElementsByName("skuAndSize")
+	Loop % selects.length
+	{
+		select := selects[A_Index-1]
+		options := select.getElementsByTagName("option")
+		Loop % options.length
 		{
-			opt := pwb.document.getElementsByName("skuId")[A_Index-1]
-			if   (opt.className="exp-pdp-size-not-in-stock" && opt.innerText+0=ShoeSize)
+			option := options[A_Index-1]
+			if(option.className=="exp-pdp-size-not-in-stock" && option.innerText+0==ShoeSize)
 			{
 				msgbox SoldOut ShoeName = %ShoeName% ShoeSize = %ShoeSize%
+				pwb.quit
 				ObjRelease(pwb)
 				return
-			}Else if(opt.innerText+0=ShoeSize)
+			}Else if(option.innerText+0==ShoeSize)
 			{
-				label := opt.value
+				label := option.value
 				DebugMessage("test success[ " A_Index " ] inner: " opt.innerText " Label : " label)
-				
 				Break
 			}
 		}
 	
+	}
+	
 	if ( StrLen(label) <= 0 )
 	{
 		msgbox Err NotFound ShoeName = %ShoeName% ShoeSize = %ShoeSize%
+		pwb.quit
 		ObjRelease(pwb)
 		return
 	}
@@ -82,6 +90,8 @@ stop = 0
 			DebugMessage("test success[ " A_Index " ] classname: " button[A_Index-1].className " inner: " button[A_Index-1].innerText+0)
 			button[A_Index-1].click()
 		}
+	
+	msgbox Add to Cart Success
 		
 	ObjRelease(pwb)
 	return
