@@ -295,7 +295,7 @@ Init()
 	
 	}else
 	{
-		SeatName = "3루석-Table석"
+		SeatName := "3루석-Table석"
 	}
 	msgbox MatchTeam = %MatchTeam% MatchDate = %MatchDate% TicketCount = %TicketCount% SeatName = %SeatName%
 					
