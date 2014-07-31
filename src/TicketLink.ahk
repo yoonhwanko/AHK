@@ -73,8 +73,8 @@ return
         
 		if(bb = 0)
 		{
-			msgbox error not found MatchTeam = %MatchTeam%
 			pwb.quit
+			msgbox 팀정보 잘못 입력함. (lgt,dsb) MatchTeam = %MatchTeam%
 			Finish()
 			return
 		}
@@ -141,10 +141,21 @@ return
 								
 				if(StrLen(value)<= 0)
 					Continue
-					
+								
 				IfInString, value, %SeatName%
 				{
 					DebugMessage("inner: " option.innerText " Label : " value " match : " key)				
+					
+					StringSplit, ValueArray, value, |,
+					
+					if(ValueArray3+0<TicketCount)
+					{
+						pwb.quit
+						msgbox 티켓 수량 에러 !  남은 수 : %ValueArray3% 구매 수 : %TicketCount%
+						Finish()
+						return
+					}
+					
 					select.value := option.value
 					select.onchange()
 					
@@ -153,7 +164,14 @@ return
 				}
 			}
 		}
-		
+		/*
+		StringSplit, ValueArray, value, |,
+					Loop, %ValueArray0%
+					{
+						subValue := ValueArray%a_index%
+						DebugMessage( "index " a_index " v : " subValue ) 
+					}
+					*/
 		DebugMessage("자동/수동 좌석 선택")
 		if(SeatRandom=False)
 		{
@@ -260,35 +278,35 @@ Init()
 
 	DebugMessage("test start")
 	
-	InputBox, MatchTeam, MatchTeam, "Please enter a MatchTeam.", , 200, 100
+	InputBox, MatchTeam, 잠실 홈 팀명, 두산vs기아(dsb) LGvs기아 :(lgt), , 300, 200
 	
 	while(StrLen(MatchTeam) <= 0)
 	{
-		InputBox, MatchTeam, MatchTeam, "Please enter a MatchTeam.", , 200, 100
+		InputBox, MatchTeam, 잠실 홈 팀명, 두산vs기아(dsb) LGvs기아 :(lgt), , 300, 200
 	}
 	
-	InputBox, MatchDate, MatchDate, "Please enter a MatchDate.", , 200, 100
+	InputBox, MatchDate, 경기일, 경기일 입력 (예매오픈일 말고 경기하는 날!! ex:20140805) , , 300, 200
 	
 	while(StrLen(MatchDate) <= 0)
 	{
-		InputBox, MatchDate, MatchDate, "Please enter a MatchDate.", , 200, 100
+		InputBox, MatchDate, 경기일, 경기일 입력 (예매오픈일 말고 경기하는 날!! ex:20140805  ) , , 300, 200
 	}
 	
-	InputBox, TicketCount, TicketCount, "Please enter a TicketCount.", , 200, 100
+	InputBox, TicketCount, 티켓 수량, 티켓 수량 입력 (ex:3), , 100, 200
 	
 	while(StrLen(TicketCount) <= 0)
 	{
-		InputBox, TicketCount, TicketCount, "Please enter a TicketCount.", , 200, 100
+		InputBox, TicketCount, 티켓 수량, 티켓 수량 입력 (ex:3), , 100, 200
 	}
 	
 	if(MatchTeam="dsb")
 	{
 		msgbox "티몬존, 메리츠화재존, 티켓링크존"
-		InputBox, SeatName, 좌석 종류,  "Please enter a SeatName.", , 200, 100
+		InputBox, SeatName, 좌석 종류,  두산만 테이블석이 3구역으로 나누어져 있음 (ex:티몬존), , 300, 200
 		
 		while(StrLen(SeatName) <= 0)
 		{
-			InputBox, SeatName, 좌석 종류,  "Please enter a SeatName.", , 200, 100
+			InputBox, SeatName, 좌석 종류,  두산만 테이블석이 3구역으로 나누어져 있음 (ex:티몬존), , 300, 200
 		}
 		
 		SeatName:="3루석-" SeatName
