@@ -29,33 +29,25 @@ while(StrLen(ShoeSize) <= 0)
 msgbox ShoeName = %ShoeName% ShoeSize = %ShoeSize%
 DebugMessage("ShoeName = " ShoeName ", ShoeSize = " ShoeSize )
 
-URL :=""
-While((URL := LoopTwitterSearch(ShoeName, ShoeSize)) == "")
+URL :=	"http://twitter.com"
+Run, C:\Program Files (x86)\Internet Explorer\iexplore.exe
+while((pwb :=	IEGet())=="")
+{} 
+pwb.Navigate(URL)
+IELoad(pwb)
+;pwb.Visible :=	True
+
+While(LoopTwitterSearch(pwb, ShoeName, ShoeSize) == 0)
 {
 	If stop = 1
 		return
 }
+
+msgbox Add to Cart Success
 return
 
-LoopTwitterSearch(ShoeName, ShoeSize)
+LoopTwitterSearch(pwb, ShoeName, ShoeSize)
 {
-	count := 5
-	
-	
-	URL :=	"http://twitter.com"
-	pwb :=	ComObjCreate("InternetExplorer.Application"), pwb.Navigate(URL)
-	IELoad(pwb)
-	
-	while((pwb :=	IEGet("Twitter"))=="")
-	{
-		if(pwd=="" && count-- <= 0)
-		{
-			msgbox 트위터 창 열고 로그인 한 다음 사용
-			exit
-		}
-	} 
-	IELoad(pwb)
-	pwb.Refresh()
 	IELoad(pwb)
 	
 	DebugMessage("StartTweetSearch" )
@@ -76,21 +68,21 @@ LoopTwitterSearch(ShoeName, ShoeSize)
 					if(twittLink[A_Index-1].className = "twitter-timeline-link")
 					{
 						url := twittLink[A_Index-1].href
-						pwb.quit
-						ObjRelease(pwb)
 						
-						DebugMessage("URL : " url " ShoeName = " ShoeName ", ShoeSize = " ShoeSize )
+						DebugMessage("[" A_Index-1 "] " "URL : " url " ShoeName = " ShoeName ", ShoeSize = " ShoeSize )
 						BuyNikeStoreItem(url, ShoeName,ShoeSize)
-						
-						Break
 					}
 				}
-				Break
+				
+				pwb.quit
+				ObjRelease(pwb)	
+				Return 1
 			}
 		}
 	}
+	pwb.Refresh()
 	sleep 1000
-	Return ""
+	Return 0
 }
 
 BuyNikeStoreItem(_URL, _ShoeName,_ShoeSize)
@@ -103,7 +95,7 @@ BuyNikeStoreItem(_URL, _ShoeName,_ShoeSize)
 	pwb.Navigate(_URL)
 	IELoad(pwb)
 	
-	pwb.Visible :=	True
+	;pwb.Visible :=	True
 
 	;Loop %	(links :=	pwb.document.links).length
 		;DebugMessage("test link " links[A_Index-1].innerText " : " A_Index)
@@ -121,17 +113,22 @@ BuyNikeStoreItem(_URL, _ShoeName,_ShoeSize)
 		Loop % options.length
 		{
 			option := options[A_Index-1]
-			if(option.className=="exp-pdp-size-not-in-stock" && option.innerText+0==_ShoeSize)
+			iText := option.innerText
+			IfInString, iText, %_ShoeSize%
 			{
-				msgbox SoldOut ShoeName = %_ShoeName% ShoeSize = %_ShoeSize%
-				pwb.quit
-				ObjRelease(pwb)
-				return
-			}Else if(option.innerText+0==_ShoeSize)
-			{
-				label := option.value
-				DebugMessage("test success[ " A_Index " ] inner: " opt.innerText " Label : " label)
-				Break
+				if(option.className=="exp-pdp-size-not-in-stock")
+				{
+
+					DebugMessage("SoldOut ShoeName = " _ShoeName " ShoeSize = " _ShoeSize)
+					ObjRelease(pwb)
+					return
+				
+				}Else
+				{
+					label := option.value
+					DebugMessage("test success[ " A_Index " ] inner: " opt.innerText " Label : " label)
+					Break
+				}
 			}
 		}
 	
@@ -139,8 +136,9 @@ BuyNikeStoreItem(_URL, _ShoeName,_ShoeSize)
 	
 	if ( StrLen(label) <= 0 )
 	{
-		msgbox Err NotFound ShoeName = %_ShoeName% ShoeSize = %_ShoeSize%
-		pwb.quit
+		;msgbox Err NotFound ShoeName = %_ShoeName% ShoeSize = %_ShoeSize%
+		
+		DebugMessage("Err NotFound ShoeName = " _ShoeName " ShoeSize = " _ShoeSize )
 		ObjRelease(pwb)
 		return
 	}
@@ -155,8 +153,6 @@ BuyNikeStoreItem(_URL, _ShoeName,_ShoeSize)
 			button[A_Index-1].click()
 		}
 	
-	msgbox Add to Cart Success
-		
 	ObjRelease(pwb)
 	return
 	
