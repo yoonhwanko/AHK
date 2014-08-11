@@ -1,4 +1,4 @@
-!F4::
+﻿!F4::
 {
 Mousegetpos, xpos, ypos
 WinGet, active_id, ID, BlueStacks App Player	;league lobby
@@ -11,34 +11,98 @@ return
 
 !F3::
 stop = 0
-;Loop
+DebugMessage("test start")
+InputBox, ShoeName, "ShoeName", "Please enter a ShoeName.", , 200, 100
+
+while(StrLen(ShoeName) <= 0)
 {
-	DebugMessage("test start")
-	
 	InputBox, ShoeName, "ShoeName", "Please enter a ShoeName.", , 200, 100
-	
-	while(StrLen(ShoeName) <= 0)
-	{
-		InputBox, ShoeName, "ShoeName", "Please enter a ShoeName.", , 200, 100
-	}
-	
+}
+
+InputBox, ShoeSize, "ShoeSize", "Please enter a ShoeSize.", , 200, 100
+
+while(StrLen(ShoeSize) <= 0)
+{
 	InputBox, ShoeSize, "ShoeSize", "Please enter a ShoeSize.", , 200, 100
-	
-	while(StrLen(ShoeSize) <= 0)
-	{
-		InputBox, ShoeSize, "ShoeSize", "Please enter a ShoeSize.", , 200, 100
-	}
-	
-	msgbox ShoeName = %ShoeName% ShoeSize = %ShoeSize%
-	DebugMessage("ShoeName = " ShoeName ", ShoeSize = " ShoeSize )
-	
-	URL :=	"http://store.nike.com/us/en_us/pd/air-zoom-pegasus-31-running-shoe/pid-1066809/pgid-1066805"
+}
 
+msgbox ShoeName = %ShoeName% ShoeSize = %ShoeSize%
+DebugMessage("ShoeName = " ShoeName ", ShoeSize = " ShoeSize )
+
+URL :=""
+While((URL := LoopTwitterSearch(ShoeName, ShoeSize)) == "")
+{
+	If stop = 1
+		return
+}
+return
+
+LoopTwitterSearch(ShoeName, ShoeSize)
+{
+	count := 5
+	
+	
+	URL :=	"http://twitter.com"
 	pwb :=	ComObjCreate("InternetExplorer.Application"), pwb.Navigate(URL)
+	IELoad(pwb)
+	
+	while((pwb :=	IEGet("Twitter"))=="")
+	{
+		if(pwd=="" && count-- <= 0)
+		{
+			msgbox 트위터 창 열고 로그인 한 다음 사용
+			exit
+		}
+	} 
+	IELoad(pwb)
+	pwb.Refresh()
+	IELoad(pwb)
+	
+	DebugMessage("StartTweetSearch" )
+	twitts :=   pwb.document.getElementsByTagName("p")
+	
+	Loop %  twitts.length
+	{
+		if   (twitts[A_Index-1].className="js-tweet-text tweet-text")
+		{
+			twitt := twitts[A_Index-1]
+			sText :=  twitt.innerText
+			IfInString, sText, %ShoeName%
+			{
+				
+				twittLink :=   twitt.getElementsByTagName("a")
+				Loop %  twittLink.length
+				{
+					if(twittLink[A_Index-1].className = "twitter-timeline-link")
+					{
+						url := twittLink[A_Index-1].href
+						pwb.quit
+						ObjRelease(pwb)
+						
+						DebugMessage("URL : " url " ShoeName = " ShoeName ", ShoeSize = " ShoeSize )
+						BuyNikeStoreItem(url, ShoeName,ShoeSize)
+						
+						Break
+					}
+				}
+				Break
+			}
+		}
+	}
+	sleep 1000
+	Return ""
+}
 
-	While	pwb.Busy
-		Sleep, 50
+BuyNikeStoreItem(_URL, _ShoeName,_ShoeSize)
+{
+	;_URL :=	"http://store.nike.com/us/en_us/pd/air-zoom-pegasus-31-running-shoe/pid-1066809/pgid-1066805"
 
+	Run, C:\Program Files (x86)\Internet Explorer\iexplore.exe
+	while((pwb :=	IEGet())=="")
+	{} 
+	pwb.Navigate(_URL)
+	IELoad(pwb)
+	
 	pwb.Visible :=	True
 
 	;Loop %	(links :=	pwb.document.links).length
@@ -57,13 +121,13 @@ stop = 0
 		Loop % options.length
 		{
 			option := options[A_Index-1]
-			if(option.className=="exp-pdp-size-not-in-stock" && option.innerText+0==ShoeSize)
+			if(option.className=="exp-pdp-size-not-in-stock" && option.innerText+0==_ShoeSize)
 			{
-				msgbox SoldOut ShoeName = %ShoeName% ShoeSize = %ShoeSize%
+				msgbox SoldOut ShoeName = %_ShoeName% ShoeSize = %_ShoeSize%
 				pwb.quit
 				ObjRelease(pwb)
 				return
-			}Else if(option.innerText+0==ShoeSize)
+			}Else if(option.innerText+0==_ShoeSize)
 			{
 				label := option.value
 				DebugMessage("test success[ " A_Index " ] inner: " opt.innerText " Label : " label)
@@ -75,7 +139,7 @@ stop = 0
 	
 	if ( StrLen(label) <= 0 )
 	{
-		msgbox Err NotFound ShoeName = %ShoeName% ShoeSize = %ShoeSize%
+		msgbox Err NotFound ShoeName = %_ShoeName% ShoeSize = %_ShoeSize%
 		pwb.quit
 		ObjRelease(pwb)
 		return
@@ -112,7 +176,34 @@ stop = 0
 		}
 
 }
-return
+
+IELoad(p){
+	While p.readyState!=4 || p.document.readyState!="complete" || p.busy
+		Sleep 100
+}
+
+IEGet( Name:="about:blank") ; return pwb with the exact tab title
+{ 
+	IfEqual, Name,, WinGetTitle, Name, ahk_class IEFrame
+		Name := ( Name="빈 페이지 - Windows Internet Explorer" ) ? "about:blank"
+		: RegExReplace( Name, " - (Windows|Microsoft) Internet Explorer" )
+	For Pwb in ComObjCreate( "Shell.Application" ).Windows
+	{
+		
+		localName := Pwb.LocationName
+		;DebugMessage("find win name : " localName " key name : " Name)
+		
+		if (localName=Name)
+		{
+			full := Pwb.FullName
+			;DebugMessage("full name : " Pwb.FullName )
+			IfInString, full, iexplore.exe
+			{
+				Return Pwb
+			}
+		}
+	}
+}
 
 Click(x, y, color = -1, delay = 1)
 {

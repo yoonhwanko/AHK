@@ -11,6 +11,7 @@ return
 
 !F3::
 stop = 0
+bTimer := False
 Loop
 {
 WinWait, BlueStacks App Player, 
@@ -21,11 +22,37 @@ sleep 30
 		break
 
 	PixelGetColor, color, 157, 843
-	
+	/*
+	if(bTimer=False)
+	{
+
+		FormatTime, TimeString, 00000000010000, hh:mm:ss
+		FormatTime, TimeString1, 00000000010001, hh:mm:ss
+		FormatTime, TimeString2, 00000000010002, hh:mm:ss
+		FormatTime, TimeString3, 00000000010003, hh:mm:ss
+		FormatTime, TimeString4, 00000000010004, hh:mm:ss
+		FormatTime, TimeString5, 00000000010005, hh:mm:ss
+		FormatTime, TimeString6, 00000000010006, hh:mm:ss
+		
+		FormatTime, CurrentTimeString, , hh:mm:ss
+		DebugMessage("time = " TimeString ", cur = " CurrentTimeString)
+		if(TimeString=CurrentTimeString||TimeString1=CurrentTimeString||TimeString2=CurrentTimeString||		TimeString3=CurrentTimeString||		TimeString4=CurrentTimeString||		TimeString5=CurrentTimeString||		TimeString6=CurrentTimeString)
+		{
+			bTimer :=True
+		}
+		else
+		{
+			Click(10,10)
+			sleep 10
+			Continue
+		}	
+
+	}
+	*/
 	;black screen
 	if Check(176,1003,0x8C3A00) == 0 && Check(93,213,0x0000) && Check(537,213,0x000000) && Check(48,861,0x000000) && Check(506,840,0x7E0D69)
 	{
-	}else if Check(176,1003,0x8C3A00) || Check(176,1003,0x943D00) || Check(176,1003,0x933D00) || Check(176,1003,0x953E00)
+	}else if Check(176,1003,0x8D3B01) || Check(176,1003,0x8C3A00) || Check(176,1003,0x943D00) || Check(176,1003,0x933D00) || Check(176,1003,0x953E00) || Check(250,1003,0x8B3A00)
 	{
 		DebugMessage("하단 중앙 파란색 버튼")
 		Click(176,1003)
@@ -34,7 +61,7 @@ sleep 30
 	else if Check(266,120,0x7E0D69) && Check(259,60,0xFFFFFF) && Check(314,54,0xFFFFFF)
 	{
 		DebugMessage("시즌경기 메뉴")
-		Click(383,512)
+		Click(383,912)
 	}
 	else if Check(266,120,0x7E0D69) && Check(67,967,0xCA642B) && Check(341,979,0xC96931) && Check(531,984,0xC75F27) 
 	{
@@ -138,7 +165,7 @@ Check(x, y, color, debug = 0) {
 
 DebugMessage(str)
 {
-return
+	return
  global h_stdout
  DebugConsoleInitialize()  ; start console window if not yet started
  ;str .= "\n" ; add line feed

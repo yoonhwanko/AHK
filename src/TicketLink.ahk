@@ -6,6 +6,7 @@ global MatchDate := ""
 global TicketCount := 0
 global SeatRandom := True
 global SeatName := ""
+global bTimer := False
 !F4::
 {
 Mousegetpos, xpos, ypos
@@ -27,13 +28,28 @@ return
 	
 		If stop = 1
 			break
-	
+		
+		if(bTimer=False)
+		{
+			FormatTime, TimeString, 00000000105955, hh:mm:ss
+			FormatTime, CurrentTimeString, , hh:mm:ss
+			DebugMessage("time = " TimeString ", cur = " CurrentTimeString)
+			if(TimeString!=CurrentTimeString)
+			{
+				ControlClick, x10 y10, Paddy Debug Console
+				sleep 10
+				Continue
+			}	
+			bTimer :=True
+		}
 		Run, C:\Program Files (x86)\Internet Explorer\iexplore.exe
-		sleep 500
-		pwb :=	IEGet() ;ComObjCreate("InternetExplorer.Application"), pwb.Navigate(URL)
+		while((pwb :=	IEGet())=="")
+		{} ;ComObjCreate("InternetExplorer.Application"), pwb.Navigate(URL)
 		pwb.Navigate(URL)
-		IELoad(pwb)
+		
+		
 		DebugMessage("url " URL)
+		IELoad(pwb)
 		
 		pwb.Visible :=	True
 				
@@ -56,6 +72,8 @@ return
 				        
 		sleep 500
         bChange = 1
+		
+		retryCount = 10
         while(bChange=1)
         {    
             Loop %   (button :=   pwb.document.all.tags["a"]).length
@@ -69,6 +87,20 @@ return
                     Break
                 }
             }
+			
+			if(retryCount <= 0)
+			{
+				if(bTicketOpen=0)
+				{
+					DebugMessage("화면 갱신 오류 ")
+					pwb.quit
+					ObjRelease(pwb)
+					
+					sleep 2000
+					Continue
+				}
+			}else
+				retryCount := retryCount-1
         }
         
 		if(bb = 0)
@@ -108,6 +140,7 @@ return
 			DebugMessage("티켓오픈 전")
 			pwb.quit
 			ObjRelease(pwb)
+			
 			sleep 2000
 			Continue
 		}
@@ -117,16 +150,9 @@ return
 		pwb.quit
 		ObjRelease(pwb)
 		
-		sleep 1000
-		pwb := IEGet("티켓링크 티켓예매 - 스포츠 - 등급/좌석선택")
+		while((pwb :=	IEGet("티켓링크 티켓예매 - 스포츠 - 등급/좌석선택"))=="")
+		{} 
 		
-		if(pwb="")
-		{
-			DebugMessage("티켓 창 에러 ")
-			msgbox 티켓 창 에러 !  MatchTeam = %MatchTeam% MatchDate = %MatchDate%
-			Finish()
-			return
-		}
 		IELoad(pwb)
 		
 		DebugMessage("좌석 선택")
