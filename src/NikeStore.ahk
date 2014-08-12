@@ -1,4 +1,4 @@
-#include Tools.ahk
+﻿#include F:\Projects\AHK\src\Tools.ahk
 
 !F4::
 {
@@ -11,15 +11,46 @@ return
 
 !F2::stop:=!stop
 
+#^!F5::
+{
+	FormatTime, CurrentTimeString, , y/M/d
+;3E3CF2E757086DEAA8267B304EDA687E
+;3E3CF2E757086DEAA8267B304EDA687E
+	CurrentTimeString := CurrentTimeString "geniusyoonhwan"
+	MD5Hash := MD5( CurrentTimeString)
+	MsgBox, %CurrentTimeString% %MD5Hash%
+	DebugMessage(MD5Hash)
+}
+return
+
+PassWordCheck(PWD)
+{
+	if(StrLen(PWD) < 5)
+	{
+		Return False
+	}
+	
+	FormatTime, CurrentTimeString, , y/M/d
+	CurrentTimeString := CurrentTimeString "geniusyoonhwan"
+	MD5Hash := MD5( CurrentTimeString)
+	IfInString, MD5Hash, %PWD%
+	{
+		Return True
+	}
+	
+	Return False
+}
+
 !F3::
 stop = 0
 
-FormatTime, CurrentTimeString, , y/M/d
-DataLength := StrLen(CurrentTimeString)
-MD5Hash := HASH( CurrentTimeString "고윤환천재", DataLength , 3 )
-MsgBox, %MD5Hash%
-return
+InputBox, pwd, PassWord, "Please enter password.", , 200, 100
 
+while(PassWordCheck(pwd) == False)
+{
+	InputBox, pwd, PassWord, "Please enter password.", , 200, 100
+}
+	
 DebugMessage("test start")
 InputBox, ShoeName, "ShoeName", "Please enter a ShoeName.", , 200, 100
 

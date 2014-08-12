@@ -1,26 +1,3 @@
-
-HASH(ByRef sData, nLen, SID = 3) { ; SID = 3: MD5, 4: SHA1
-;  Laszlo: http://www.autohotkey.com/forum/viewtopic.php?p=113252#113252
-   DllCall("advapi32\CryptAcquireContextA", UIntP,hProv, UInt,0, UInt,0, UInt,1, UInt,0xF0000000)
-   DllCall("advapi32\CryptCreateHash", UInt,hProv, UInt,0x8000|0|SID, UInt,0, UInt,0, UIntP, hHash)
-
-   DllCall("advapi32\CryptHashData", UInt,hHash, UInt,&sData, UInt,nLen, UInt,0)
-
-   DllCall("advapi32\CryptGetHashParam", UInt,hHash, UInt,2, UInt,0, UIntP,nSize, UInt,0)
-   VarSetCapacity(HashVal, nSize, 0)
-   DllCall("advapi32\CryptGetHashParam", UInt,hHash, UInt,2, UInt,&HashVal, UIntP,nSize, UInt,0)
-
-   DllCall("advapi32\CryptDestroyHash", UInt,hHash)
-   DllCall("advapi32\CryptReleaseContext", UInt,hProv, UInt,0)
-
-   IFormat := A_FormatInteger
-   SetFormat Integer, H
-   Loop %nSize%
-      sHash .= SubStr(*(&HashVal+A_Index-1)+0x100,-1)
-   SetFormat Integer, %IFormat%
-   Return sHash
-}
-
 IELoad(p){
 	While p.readyState!=4 || p.document.readyState!="complete" || p.busy
 		Sleep 100
@@ -145,4 +122,58 @@ printf(string, prms*)    ; uses variadics to handle variable number of inputs
     }
         
     return string
+}
+
+HashFromAddr(pData, len, algid, key=0)
+{
+  hProv := size := hHash := hash := ""
+  ptr := (A_PtrSize) ? "ptr" : "uint"
+  aw := (A_IsUnicode) ? "W" : "A"
+  if (DllCall("advapi32\CryptAcquireContext" aw, ptr "*", hProv, ptr, 0, ptr, 0, "uint", 1, "uint", 0xF0000000))
+  {
+    if (DllCall("advapi32\CryptCreateHash", ptr, hProv, "uint", algid, "uint", key, "uint", 0, ptr "*", hHash))
+    {
+      if (DllCall("advapi32\CryptHashData", ptr, hHash, ptr, pData, "uint", len, "uint", 0))
+      {
+        if (DllCall("advapi32\CryptGetHashParam", ptr, hHash, "uint", 2, ptr, 0, "uint*", size, "uint", 0))
+        {
+          VarSetCapacity(bhash, size, 0)
+          DllCall("advapi32\CryptGetHashParam", ptr, hHash, "uint", 2, ptr, &bhash, "uint*", size, "uint", 0)
+        }
+      }
+      DllCall("advapi32\CryptDestroyHash", ptr, hHash)
+    }
+    DllCall("advapi32\CryptReleaseContext", ptr, hProv, "uint", 0)
+  }
+  int := A_FormatInteger
+  SetFormat, Integer, h
+  Loop, % size
+  {
+    v := substr(NumGet(bhash, A_Index-1, "uchar") "", 3)
+    while (strlen(v)<2)
+      v := "0" v
+    hash .= v
+  }
+  SetFormat, Integer, % int
+  return hash
+}
+ 
+ 
+HashFromString(string, algid, key=0)
+{
+  len := strlen(string)
+  if (A_IsUnicode)
+  {
+    VarSetCapacity(data, len)
+    StrPut := "StrPut"
+    %StrPut%(string, &data, len, "cp0")
+    return HashFromAddr(&data, len, algid, key)
+  }
+  data := string
+  return HashFromAddr(&data, len, algid, key)
+}
+ 
+MD5(string)
+{
+  return HashFromString(string, 0x8003)
 }
