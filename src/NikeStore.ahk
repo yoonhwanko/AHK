@@ -70,7 +70,8 @@ msgbox ShoeName = %ShoeName% ShoeSize = %ShoeSize%
 DebugMessage("ShoeName = " ShoeName ", ShoeSize = " ShoeSize )
 
 URL :=	"http://twitter.com"
-Run, C:\Program Files (x86)\Internet Explorer\iexplore.exe
+Run, C:\Program Files\Internet Explorer\iexplore.exe
+;Run, C:\Program Files (x86)\Internet Explorer\iexplore.exe
 while((pwb :=	IEGet())=="")
 {} 
 pwb.Navigate(URL)
@@ -129,7 +130,8 @@ BuyNikeStoreItem(_URL, _ShoeName,_ShoeSize)
 {
 	;_URL :=	"http://store.nike.com/us/en_us/pd/air-zoom-pegasus-31-running-shoe/pid-1066809/pgid-1066805"
 
-	Run, C:\Program Files (x86)\Internet Explorer\iexplore.exe
+	Run, C:\Program Files\Internet Explorer\iexplore.exe
+	;Run, C:\Program Files (x86)\Internet Explorer\iexplore.exe
 	while((pwb :=	IEGet())=="")
 	{} 
 	pwb.Navigate(_URL)
