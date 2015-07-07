@@ -66,22 +66,35 @@ while(StrLen(ShoeSize) <= 0)
 	InputBox, ShoeSize, "ShoeSize", "Please enter a ShoeSize.", , 200, 100
 }
 
+DirectUrl := ""
+InputBox, DirectUrl, DirectUrl, "Please enter a DirectUrl.", , 200, 100
+
 msgbox ShoeName = %ShoeName% ShoeSize = %ShoeSize%
 DebugMessage("ShoeName = " ShoeName ", ShoeSize = " ShoeSize )
 
-URL :=	"http://twitter.com"
-Run, C:\Program Files\Internet Explorer\iexplore.exe
-;Run, C:\Program Files (x86)\Internet Explorer\iexplore.exe
-while((pwb :=	IEGet())=="")
-{} 
-pwb.Navigate(URL)
-IELoad(pwb)
-;pwb.Visible :=	True
 
-While(LoopTwitterSearch(pwb, ShoeName, ShoeSize) == 0)
+if(DirectUrl=="")
 {
-	If stop = 1
-		return
+
+	URL :=	"http://twitter.com"
+
+	Run, C:\Program Files (x86)\Internet Explorer\iexplore.exe
+	while((pwb :=	IEGet())=="")
+	{} 
+	pwb.Navigate(URL)
+	;pwb := ComObjCreate("InternetExplorer.Application"), pwb.Navigate(URL)
+	IELoad(pwb)
+	;pwb.Visible :=	True
+
+	While(LoopTwitterSearch(pwb, ShoeName, ShoeSize) == 0)
+	{
+		If stop = 1
+			return
+	}
+}
+else
+{
+	BuyNikeStoreItem(DirectUrl, ShoeName,ShoeSize)
 }
 
 msgbox Add to Cart Success
@@ -130,11 +143,11 @@ BuyNikeStoreItem(_URL, _ShoeName,_ShoeSize)
 {
 	;_URL :=	"http://store.nike.com/us/en_us/pd/air-zoom-pegasus-31-running-shoe/pid-1066809/pgid-1066805"
 
-	Run, C:\Program Files\Internet Explorer\iexplore.exe
-	;Run, C:\Program Files (x86)\Internet Explorer\iexplore.exe
+	Run, C:\Program Files (x86)\Internet Explorer\iexplore.exe
 	while((pwb :=	IEGet())=="")
 	{} 
 	pwb.Navigate(_URL)
+;	pwb := ComObjCreate("InternetExplorer.Application"), pwb.Navigate(_URL)
 	IELoad(pwb)
 	
 	;pwb.Visible :=	True
@@ -189,7 +202,8 @@ BuyNikeStoreItem(_URL, _ShoeName,_ShoeSize)
 		
 	;Add to Cart
 	Loop %   (button :=   pwb.document.all.tags["button"]).length
-		if   (button[A_Index-1].className="add-to-cart nsg-button--nike-orange")
+	    if   (button[A_Index-1].className="add-to-cart nsg-button--nike-orange"
+		|| button[A_Index-1].className="add-to-cart nsg-button nsg-grad--nike-orange")
 		{
 			DebugMessage("test success[ " A_Index " ] classname: " button[A_Index-1].className " inner: " button[A_Index-1].innerText+0)
 			button[A_Index-1].click()
